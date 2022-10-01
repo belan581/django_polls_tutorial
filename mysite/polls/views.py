@@ -5,13 +5,14 @@ from django.http import (
     HttpResponse, Http404, HttpResponseRedirect
 )
 from django.urls import reverse
+from django.views.generic import ListView
 from django.template import loader
 
 from .models import Question, Choice
 
 # Create your views here.
 
-def index(request):
+'''def index(request):
     questions = Question.objects.all()
     latest_question_list = Question.objects.order_by('-pub_date')[:5]
     # output = ', '.join([q.question_text for q in questions])
@@ -21,6 +22,19 @@ def index(request):
         'latest_questions': latest_question_list,
     }
     return HttpResponse(template.render(context, request))
+'''
+class IndexView(ListView):
+    template_name = 'polls/index.html'
+    context_object_name = 'latest_questions'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['mensaje'] = 'Lista de encuestas'
+        return context
+
+    def get_queryset(self):
+        query = Question.objects.order_by('-pub_date')[:5]
+        return query
 
 def detail(request, question_id):
     try:
