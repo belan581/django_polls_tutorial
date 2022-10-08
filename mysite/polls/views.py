@@ -1,5 +1,6 @@
 from django.shortcuts import (
-    render, get_object_or_404
+    render, get_object_or_404,
+    redirect
 )
 from django.http import (
     HttpResponse, Http404, HttpResponseRedirect
@@ -9,6 +10,7 @@ from django.views.generic import ListView
 from django.template import loader
 
 from .models import Question, Choice
+from .forms import QuestionForm
 
 # Create your views here.
 
@@ -68,3 +70,22 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+
+
+def add_or_change_question(request, question_id=None):
+    question = None
+    if question_id:
+        question = get_object_or_404(Question, pk=question_id)
+        if request.method == "POST":
+            form = QuestionForm(
+            data=request.POST,
+            files=request.FILES,
+            instance=question
+            )
+            if form.is_valid():
+                question = form.save()
+                return redirect("polls:detail", pk=question.pk)
+        else:
+            form = QuestionForm(instance=question)
+    context = {"question": question, "form": form}
+    return render(request, "polls/polls_form.html", context)
